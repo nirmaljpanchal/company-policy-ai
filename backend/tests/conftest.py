@@ -1,47 +1,52 @@
 import os
 from typing import Generator
-import tempfile
+from uuid import UUID
+import uuid
 
 import pytest
 
-# Use a temporary file for SQLite to avoid threading issues with in-memory DB
-test_db_file = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
-test_db_path = test_db_file.name
-test_db_file.close()
-
-os.environ["DATABASE_URL"] = f"sqlite:///{test_db_path}"
 os.environ.setdefault("OPENAI_API_KEY", "test-key")
 os.environ.setdefault("JWT_SECRET", "test-secret")
+os.environ["DATABASE_URL"] = "sqlite:///:memory:"
 
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy import create_engine, event
+from sqlalchemy.pool import StaticPool
+import sqlite3
 
-from app.db import Base, SessionLocal, get_db, engine
+from app.db import Base, get_db
 from app.main import app
 
+# Configure SQLite to handle UUIDs properly
+def adapt_uuid(val):
+    return str(val)
 
-@pytest.fixture(scope="session", autouse=True)
-def cleanup_test_db() -> Generator[None, None, None]:
-    """Clean up test database file after all tests."""
-    yield
-    try:
-        os.remove(test_db_path)
-    except Exception:
-        pass
+def convert_uuid(val):
+    return uuid.UUID(val.decode())
 
+sqlite3.register_adapter(UUID, adapt_uuid)
+sqlite3.register_converter("uuid", convert_uuid)
 
-@pytest.fixture(scope="function", autouse=True)
-def setup_db() -> Generator[None, None, None]:
-    """Create all tables before each test, drop after."""
-    Base.metadata.create_all(bind=engine)
-    yield
-    Base.metadata.drop_all(bind=engine)
+# Create a test engine with in-memory SQLite configured for threading
+test_engine = create_engine(
+    "sqlite:///:memory:",
+    connect_args={
+        "check_same_thread": False,
+        "detect_types": sqlite3.PARSE_DECLTYPES,
+    },
+    poolclass=StaticPool,
+)
+
+Base.metadata.create_all(bind=test_engine)
+
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
 
 
 @pytest.fixture(scope="function")
 def db() -> Generator[Session, None, None]:
     """Get a database session for testing."""
-    session = SessionLocal()
+    session = TestingSessionLocal()
     try:
         yield session
     finally:

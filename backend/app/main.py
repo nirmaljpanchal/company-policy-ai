@@ -38,6 +38,5 @@ def health_check(db: Session = Depends(get_db)) -> dict:
 app.include_router(auth.router)
 app.include_router(admin.router)
 
-# Chat router to be added in later phases:
-# from app.routers import chat
-# app.include_router(chat.router, prefix="/chat", tags=["chat"])
+from app.routers import chat
+app.include_router(chat.router, tags=["chat"])
