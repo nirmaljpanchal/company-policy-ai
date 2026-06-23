@@ -59,6 +59,22 @@ Default `.env` values match the local Docker Postgres setup. For production, upd
 - `JWT_SECRET` (generate a strong secret)
 - `DATABASE_URL` (if not using Docker)
 
+## Seeding an Admin User
+
+Create or update an admin user for local development and testing (no public signup route exists):
+
+```bash
+# Via CLI arguments
+python -m app.scripts.seed_admin --email admin@example.com --password your_secure_password
+
+# Via environment variables
+export SEED_ADMIN_EMAIL=admin@example.com
+export SEED_ADMIN_PASSWORD=your_secure_password
+python -m app.scripts.seed_admin
+```
+
+The command is idempotent — if the email exists, it updates the password and role; otherwise, it creates a new user.
+
 ## Running the Application
 
 Ensure the database is running, then start the API server:
