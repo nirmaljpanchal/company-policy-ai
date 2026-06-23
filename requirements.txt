@@ -1,0 +1,9 @@
+streamlit
+langgraph
+langchain
+langchain-google-genai
+langchain-pinecone
+langchain-community
+pymupdf
+docx2txt
+python-dotenv
