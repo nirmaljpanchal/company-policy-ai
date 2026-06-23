@@ -7,7 +7,7 @@ from app.auth.deps import require_admin
 from app.config import get_settings
 from app.db import get_db
 from app.models.user import User
-from app.routers import auth
+from app.routers import admin, auth
 
 app = FastAPI(
     title="PolicyChat API",
@@ -36,15 +36,8 @@ def health_check(db: Session = Depends(get_db)) -> dict:
 
 
 app.include_router(auth.router)
+app.include_router(admin.router)
 
-
-# TODO: Remove this demo endpoint once real admin router lands in Phase 3
-@app.get("/admin/ping")
-def admin_ping(user: User = Depends(require_admin)) -> dict:
-    return {"pong": True, "user": user.email}
-
-
-# Routers to be added in later phases:
-# from app.routers import admin, chat
-# app.include_router(admin.router, prefix="/admin", tags=["admin"])
+# Chat router to be added in later phases:
+# from app.routers import chat
 # app.include_router(chat.router, prefix="/chat", tags=["chat"])

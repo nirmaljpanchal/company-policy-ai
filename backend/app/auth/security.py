@@ -21,7 +21,7 @@ def create_access_token(
     subject: str, role: str, extra_claims: Optional[Dict[str, Any]] = None
 ) -> str:
     settings = get_settings()
-    now = datetime.utc.now()
+    now = datetime.utcnow()
     expires = now + timedelta(minutes=settings.access_token_ttl_min)
 
     claims = {
@@ -39,7 +39,7 @@ def create_access_token(
 
 def create_refresh_token(subject: str) -> str:
     settings = get_settings()
-    now = datetime.utc.now()
+    now = datetime.utcnow()
     expires = now + timedelta(days=settings.refresh_token_ttl_days)
 
     claims = {

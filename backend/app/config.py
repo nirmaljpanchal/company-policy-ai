@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     daily_query_limit: int = 5
     auth_provider: str = "local"
     frontend_origin: str = "http://localhost:5173"
+    max_upload_mb: int = 10
 
     # Azure Entra (optional, used when auth_provider="azure_entra")
     azure_tenant_id: str = ""
